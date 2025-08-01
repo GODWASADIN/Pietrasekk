@@ -222,7 +222,7 @@ async def shop(ctx):
         "GIT": 70000,
         "VIP": 100000
     }
-    opis = "🛒 Sklep z rangami:
+    opis = "🛒 Sklep z rangami:"
 
 "
     for r, c in sklep.items():
