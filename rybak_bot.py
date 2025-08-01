@@ -265,3 +265,22 @@ async def on_command_error(ctx, error):
         await ctx.send(f"{ctx.author.mention}, możesz użyć tej komendy ponownie za {int(error.retry_after)} sekund.")
     else:
         raise error
+
+
+@bot.command()
+async def shop(ctx):
+    sklep = {
+        "PEDAŁ": 5000,
+        "ZŁODZIEJ": 15000,
+        "ZBIERACZ": 50000,
+        "GIT": 70000,
+        "VIP": 100000
+    }
+
+    opis = "🛒 Sklep z rangami:\n\n"
+    for rola, cena in sklep.items():
+        opis += f"🎫 {rola} – {cena} robuxów\n"
+
+    opis += "\nAby kupić, wpisz: `.kup <nazwa roli>`"
+
+    await ctx.send(opis)
