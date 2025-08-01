@@ -29,7 +29,7 @@ def get_user_data(user_id):
     data = load_data()
     user_id = str(user_id)
     if user_id not in data:
-        data[user_id] = {'robux': 0, 'bank': 0, 'exp': 0, 'level': 0}
+        data[user_id] = {'robux': 0, 'bank': 0, 'exp': 0, 'level': 1}
         save_data(data)
     return data[user_id]
 
