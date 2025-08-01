@@ -204,8 +204,6 @@ async def shop(ctx):
     embed = discord.Embed(title="🛍️ Sklep z rangami", description=opis, color=discord.Color.blue())
     await ctx.send(embed=embed)
 
-from datetime import datetime, timedelta
-
 last_daily = {}
 
 @bot.command()
