@@ -84,30 +84,35 @@ async def bank(ctx, operacja: str, kwota: int):
 @commands.cooldown(1, 20, commands.BucketType.user)
 async def lowienie(ctx):
     ryby = [
-        ("Płotka", 0.5, (10, 30)),
-        ("Szczupak", 0.3, (30, 60)),
-        ("Łosoś", 0.15, (60, 100)),
-        ("Rekin", 0.04, (100, 250)),
-        ("Megalodon", 0.01, (500, 1000)),
+        ("Płotka", 0.425, (10, 30)),
+        ("Szczupak", 0.255, (30, 60)),
+        ("Łosoś", 0.1275, (60, 100)),
+        ("Rekin", 0.034, (100, 250)),
+        ("Megalodon", 0.0085, (500, 1000)),
     ]
     r = random.random()
     suma = 0
+
     for nazwa, szansa, (min_r, max_r) in ryby:
         suma += szansa
-        if r <= suma:
+        if r < suma:
             nagroda = random.randint(min_r, max_r)
             user_data = get_user_data(ctx.author.id)
             user_data['robux'] += nagroda
             user_data['exp'] += 5
+
             new_level = get_level_from_exp(user_data['exp'])
             if new_level > user_data['level']:
                 user_data['level'] = new_level
                 await assign_level_role(ctx.author, new_level)
                 await ctx.send(f"{ctx.author.mention} awansował na poziom {new_level}!")
+
             update_user_data(ctx.author.id, user_data)
             await ctx.send(f"{ctx.author.mention} złowił: **{nazwa}** i zarobił {nagroda} Robuxów!")
             return
-    await ctx.send(f"{ctx.author.mention} nic nie złowił!")
+
+    # Jeśli nie złowił nic (15% szans)
+    await ctx.send(f"{ctx.author.mention}, niestety nic nie złowiłeś tym razem 🎣")
 
 @bot.command()
 @commands.cooldown(1, 60, commands.BucketType.user)
