@@ -155,37 +155,43 @@ async def rob(ctx, target: discord.Member):
     update_user_data(target.id, target_data)
 
 @bot.command()
-async def kup(ctx, kwota: int):
+async def kup(ctx, *, ranga: str):
     role_map = {
-        5000: 'PEDAŁ',
-        15000: 'ZŁODZIEJ',
-        50000: 'ZBIERACZ',
-        70000: 'GIT',
-        100000: 'VIP'
+        "PEDAŁ": 5000,
+        "ZŁODZIEJ": 15000,
+        "ZBIERACZ": 50000,
+        "GIT": 70000,
+        "VIP": 100000
     }
 
+    ranga = ranga.upper()
+    if ranga not in role_map:
+        return await ctx.send("❌ Nie ma takiej rangi w sklepie.")
+
+    cena = role_map[ranga]
     user_data = get_user_data(ctx.author.id)
-    if 'bank' not in user_data:
-        user_data['bank'] = 0
+    robux_total = user_data.get("robux", 0) + user_data.get("bank", 0)
 
-    if kwota not in role_map:
-        return await ctx.send("❌ Nie ma takiej rangi. Użyj `.shop`, aby zobaczyć dostępne.")
+    if robux_total < cena:
+        brakujace = cena - robux_total
+        return await ctx.send(f"❌ Brakuje Ci {brakujace} Robuxów, aby kupić rangę **{ranga}**.")
 
-    if user_data['bank'] < kwota:
-        brakujace = kwota - user_data['bank']
-        return await ctx.send(f"❌ Brakuje Ci {brakujace} Robuxów w banku, aby kupić tę rangę.")
+    # Odejmowanie robuxów najpierw z portfela, potem z banku
+    if user_data["robux"] >= cena:
+        user_data["robux"] -= cena
+    else:
+        cena -= user_data["robux"]
+        user_data["robux"] = 0
+        user_data["bank"] -= cena
 
-    rola_nazwa = role_map[kwota]
-    rola = discord.utils.get(ctx.guild.roles, name=rola_nazwa)
+    # Dodanie roli
+    rola = discord.utils.get(ctx.guild.roles, name=ranga)
     if not rola:
-        rola = await ctx.guild.create_role(name=rola_nazwa)
-
+        rola = await ctx.guild.create_role(name=ranga)
     await ctx.author.add_roles(rola)
 
-    user_data['bank'] -= kwota
     update_user_data(ctx.author.id, user_data)
-
-    await ctx.send(f"✅ {ctx.author.mention}, kupiłeś rolę **{rola_nazwa}** za 💸 {kwota} Robuxów z banku!")
+    await ctx.send(f"✅ {ctx.author.mention}, kupiłeś rangę **{ranga}**!")
 
 @bot.command()
 async def ranking(ctx):
