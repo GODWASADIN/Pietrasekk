@@ -226,8 +226,8 @@ async def shop(ctx):
 
 
     for r, c in sklep.items():
-        opis += f"🎫 {r} – {c} robuxów
-"
+        opis += f"🎫 {r} – {c} robuxów\n"
+        
     opis += "
 Aby kupić, wpisz `.kup <rola>`"
     await ctx.send(opis)
