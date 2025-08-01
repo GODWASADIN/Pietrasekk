@@ -224,7 +224,7 @@ async def shop(ctx):
     }
     opis = "🛒 Sklep z rangami:"
 
-"
+
     for r, c in sklep.items():
         opis += f"🎫 {r} – {c} robuxów
 "
