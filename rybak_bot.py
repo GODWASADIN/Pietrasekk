@@ -156,20 +156,36 @@ async def rob(ctx, target: discord.Member):
 
 @bot.command()
 async def kup(ctx, kwota: int):
-    role_map = {5000: 'PEDAŁ', 15000: 'ZŁODZIEJ', 50000: 'ZBIERACZ', 70000: 'GIT', 100000: 'VIP'}
+    role_map = {
+        5000: 'PEDAŁ',
+        15000: 'ZŁODZIEJ',
+        50000: 'ZBIERACZ',
+        70000: 'GIT',
+        100000: 'VIP'
+    }
+
     user_data = get_user_data(ctx.author.id)
+    if 'bank' not in user_data:
+        user_data['bank'] = 0
+
     if kwota not in role_map:
-        return await ctx.send("Nie ma takiej rangi.")
-    if user_data['robux'] < kwota:
-        return await ctx.send("Nie masz wystarczająco Robuxów.")
+        return await ctx.send("❌ Nie ma takiej rangi. Użyj `.shop`, aby zobaczyć dostępne.")
+
+    if user_data['bank'] < kwota:
+        brakujace = kwota - user_data['bank']
+        return await ctx.send(f"❌ Brakuje Ci {brakujace} Robuxów w banku, aby kupić tę rangę.")
+
     rola_nazwa = role_map[kwota]
     rola = discord.utils.get(ctx.guild.roles, name=rola_nazwa)
     if not rola:
         rola = await ctx.guild.create_role(name=rola_nazwa)
+
     await ctx.author.add_roles(rola)
-    user_data['robux'] -= kwota
+
+    user_data['bank'] -= kwota
     update_user_data(ctx.author.id, user_data)
-    await ctx.send(f"{ctx.author.mention}, kupiłeś rolę {rola_nazwa} za {kwota} Robuxów!")
+
+    await ctx.send(f"✅ {ctx.author.mention}, kupiłeś rolę **{rola_nazwa}** za 💸 {kwota} Robuxów z banku!")
 
 @bot.command()
 async def ranking(ctx):
