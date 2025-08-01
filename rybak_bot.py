@@ -187,8 +187,6 @@ async def lvl(ctx):
     user_data = get_user_data(ctx.author.id)
     await ctx.send(f"{ctx.author.mention}, masz {user_data['exp']} EXP i jesteś na poziomie {user_data['level']}.")
 
-bot.run(os.getenv("DISCORD_TOKEN"))
-
 @bot.command()
 async def shop(ctx):
     role_map = {
