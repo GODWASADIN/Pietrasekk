@@ -178,7 +178,7 @@ async def ranking(ctx):
     opis = ""
     for i, (user_id, dane) in enumerate(top, 1):
         opis += f"{i}. <@{user_id}> – 💰 {dane['robux']} | 🧳 {dane['bank']} | 🔱 lvl {dane['level']}\n"
-"
+
     embed = discord.Embed(title="🏆 Ranking graczy", description=opis, color=discord.Color.gold())
     await ctx.send(embed=embed)
 
