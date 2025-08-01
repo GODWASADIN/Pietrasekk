@@ -265,3 +265,5 @@ async def on_command_error(ctx, error):
         await ctx.send(f"{ctx.author.mention}, możesz użyć tej komendy ponownie za {int(error.retry_after)} sekund.")
     else:
         raise error
+import os
+bot.run(os.getenv("DISCORD_TOKEN"))
