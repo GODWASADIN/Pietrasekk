@@ -99,6 +99,95 @@ async def bj(ctx, bet: int):
 
     await ctx.send(f"Twoje karty: {hand} (suma: {hand_value(hand)})\nKrupier pokazuje: {dealer_hand[0]}\nNapisz `.hit` aby dobrać, `.stand` aby zatrzymać.")
 
+
+from discord.ext import commands
+import random
+
+@bot.command()
+@commands.cooldown(1, 30, commands.BucketType.user)
+async def slot(ctx, kwota: int):
+    if kwota <= 0:
+        return await ctx.send("Podaj poprawną kwotę większą niż 0.")
+
+    user_data = get_user_data(ctx.author.id)
+    if user_data['robux'] < kwota:
+        return await ctx.send("Nie masz tyle Robuxów.")
+
+    user_data['robux'] -= kwota
+
+    symbole = ['🍒', '🍋', '🍊', '🍉', '⭐', '7️⃣']
+    wynik = [random.choice(symbole) for _ in range(3)]
+
+    await ctx.send(f"🎰 Wynik: {' | '.join(wynik)}")
+
+    if wynik[0] == wynik[1] == wynik[2]:
+        wygrana = kwota * 5
+        user_data['robux'] += wygrana
+        await ctx.send(f"🎉 TRZY takie same! Wygrałeś {wygrana} Robuxów!")
+    elif wynik[0] == wynik[1] or wynik[1] == wynik[2] or wynik[0] == wynik[2]:
+        wygrana = kwota * 2
+        user_data['robux'] += wygrana
+        await ctx.send(f"✨ DWA takie same! Wygrałeś {wygrana} Robuxów!")
+    else:
+        await ctx.send(f"😢 Nic nie wygrałeś. Spróbuj jeszcze raz!")
+
+    update_user_data(ctx.author.id, user_data)
+
+@slot.error
+async def slot_error(ctx, error):
+    if isinstance(error, commands.CommandOnCooldown):
+        await ctx.send(f"⏳ Ta komenda jest na cooldownie. Spróbuj za {int(error.retry_after)} sekund.")
+    else:
+        raise error
+
+
+@bot.command()
+async def dep(ctx, kwota: str):
+    user_data = get_user_data(ctx.author.id)
+    robux = user_data.get('robux', 0)
+
+    if kwota.lower() == 'all':
+        kwota_int = robux
+    else:
+        if not kwota.isdigit():
+            return await ctx.send("Podaj poprawną liczbę lub 'all'.")
+        kwota_int = int(kwota)
+
+    if kwota_int <= 0:
+        return await ctx.send("Podaj kwotę większą niż 0.")
+
+    if robux < kwota_int:
+        return await ctx.send("Nie masz tyle Robuxów na sobie.")
+
+    user_data['robux'] -= kwota_int
+    user_data['bank'] += kwota_int
+    update_user_data(ctx.author.id, user_data)
+    await ctx.send(f"{ctx.author.mention} wpłacił {kwota_int} Robuxów do banku.")
+
+@bot.command()
+async def with(ctx, kwota: str):
+    user_data = get_user_data(ctx.author.id)
+    bank = user_data.get('bank', 0)
+
+    if kwota.lower() == 'all':
+        kwota_int = bank
+    else:
+        if not kwota.isdigit():
+            return await ctx.send("Podaj poprawną liczbę lub 'all'.")
+        kwota_int = int(kwota)
+
+    if kwota_int <= 0:
+        return await ctx.send("Podaj kwotę większą niż 0.")
+
+    if bank < kwota_int:
+        return await ctx.send("Nie masz tyle Robuxów w banku.")
+
+    user_data['bank'] -= kwota_int
+    user_data['robux'] += kwota_int
+    update_user_data(ctx.author.id, user_data)
+    await ctx.send(f"{ctx.author.mention} wypłacił {kwota_int} Robuxów z banku.")
+
+
 @bot.command()
 async def hit(ctx):
     game = games.get(ctx.author.id)
