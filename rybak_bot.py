@@ -104,7 +104,7 @@ from discord.ext import commands
 import random
 
 @bot.command()
-@commands.cooldown(1, 30, commands.BucketType.user)
+@commands.cooldown(1, 10, commands.BucketType.user)
 async def slot(ctx, kwota: int):
     if kwota <= 0:
         return await ctx.send("Podaj poprawną kwotę większą niż 0.")
@@ -276,12 +276,15 @@ async def bank(ctx, operacja: str, kwota: int):
 @commands.cooldown(1, 20, commands.BucketType.user)
 async def lowienie(ctx):
     ryby = [
-        ("Płotka", 0.425, (30, 60)),
-        ("Szczupak", 0.255, (60, 120)),
-        ("Szczupak", 0.255, (150, 180)),
-        ("Łosoś", 0.1275, (200, 250)),
-        ("Rekin", 0.034, (400, 500)),
-        ("Nemo", 0.0085, (1000, 2000)),
+        ("PŁOTKA", 0.425, (30, 60)),
+        ("KARP", 0.255, (60, 120)),
+        ("SZCZUPAK", 0.255, (150, 180)),
+        ("SUM", 0.1200, (300, 450)),
+        ("ŁOSOŚ", 0.1275, (200, 250)),
+        ("REKIN", 0.034, (400, 500)),
+        ("NEMO", 0.0085, (1000, 2000)),
+        ("MEGALODON", 0.0005, (5000, 7000)),
+              
     ]
     r = random.random()
     suma = 0
@@ -373,9 +376,11 @@ async def rob(ctx, target: discord.Member):
 
 
 
+from discord.ext import commands
 import random
 
 @bot.command()
+@commands.cooldown(1, 10, commands.BucketType.user)
 async def ruletka(ctx, kwota: int, kolor: str):
     kolor = kolor.lower()
     kolory = ['czerwony', 'czarny', 'zielony']
@@ -392,7 +397,6 @@ async def ruletka(ctx, kwota: int, kolor: str):
 
     user_data['robux'] -= kwota
 
-    # Losujemy wynik ruletki z wagami 2% zielony, 49% czerwony, 49% czarny
     wynik = random.choices(
         population=['zielony', 'czerwony', 'czarny'],
         weights=[2, 49, 49],
@@ -411,6 +415,14 @@ async def ruletka(ctx, kwota: int, kolor: str):
     else:
         update_user_data(ctx.author.id, user_data)
         await ctx.send(f"😢 Wylosowano **{wynik}**. Przegrałeś {kwota} Robuxów.")
+
+@ruletka.error
+async def ruletka_error(ctx, error):
+    if isinstance(error, commands.CommandOnCooldown):
+        await ctx.send(f"⏳ Ta komenda jest na cooldownie. Spróbuj za {int(error.retry_after)} sekund.")
+    else:
+        raise error
+
         
 @bot.command()
 async def kup(ctx, *, nazwa: str):
