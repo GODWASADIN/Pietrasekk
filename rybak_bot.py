@@ -61,6 +61,111 @@ async def bal(ctx):
     user_data = get_user_data(ctx.author.id)
     await ctx.send(f"{ctx.author.mention}, masz {user_data['robux']} Robuxów w portfelu i {user_data['bank']} w banku.")
 
+
+import random
+
+games = {}  # Przechowuje stany gier per user_id
+
+deck = [2,3,4,5,6,7,8,9,10,10,10,10,11]*4  # Prosta talia (10=J,Q,K), as=11
+
+def hand_value(hand):
+    value = sum(hand)
+    # As liczymy jako 1 jeśli przekracza 21
+    aces = hand.count(11)
+    while value > 21 and aces:
+        value -= 10
+        aces -= 1
+    return value
+
+@bot.command()
+async def bj(ctx, bet: int):
+    user_data = get_user_data(ctx.author.id)
+    if bet <= 0:
+        return await ctx.send("Podaj poprawną stawkę.")
+    if user_data['robux'] < bet:
+        return await ctx.send("Nie masz tyle Robuxów!")
+
+    user_data['robux'] -= bet
+    update_user_data(ctx.author.id, user_data)
+
+    hand = random.sample(deck, 2)
+    dealer_hand = random.sample(deck, 2)
+    games[ctx.author.id] = {
+        'bet': bet,
+        'hand': hand,
+        'dealer_hand': dealer_hand,
+        'finished': False
+    }
+
+    await ctx.send(f"Twoje karty: {hand} (suma: {hand_value(hand)})\nKrupier pokazuje: {dealer_hand[0]}\nNapisz `.hit` aby dobrać, `.stand` aby zatrzymać.")
+
+@bot.command()
+async def hit(ctx):
+    game = games.get(ctx.author.id)
+    if not game or game['finished']:
+        return await ctx.send("Nie masz aktywnej gry. Zacznij od `.bj [stawka]`.")
+
+    game['hand'].append(random.choice(deck))
+    value = hand_value(game['hand'])
+
+    if value > 21:
+        game['finished'] = True
+        await ctx.send(f"Twoje karty: {game['hand']} (suma: {value})\nPrzegrałeś! Straciłeś {game['bet']} Robuxów.")
+    else:
+        await ctx.send(f"Twoje karty: {game['hand']} (suma: {value})\nNapisz `.hit` lub `.stand`.")
+
+@bot.command()
+async def stand(ctx):
+    game = games.get(ctx.author.id)
+    if not game or game['finished']:
+        return await ctx.send("Nie masz aktywnej gry. Zacznij od `.bj [stawka]`.")
+
+    game['finished'] = True
+    player_val = hand_value(game['hand'])
+    dealer_hand = game['dealer_hand']
+
+    while hand_value(dealer_hand) < 17:
+        dealer_hand.append(random.choice(deck))
+
+    dealer_val = hand_value(dealer_hand)
+
+    user_data = get_user_data(ctx.author.id)
+
+    result_msg = f"Twoje karty: {game['hand']} (suma: {player_val})\nKarty krupiera: {dealer_hand} (suma: {dealer_val})\n"
+
+    if dealer_val > 21 or player_val > dealer_val:
+        wygrana = game['bet'] * 2
+        user_data['robux'] += wygrana
+        update_user_data(ctx.author.id, user_data)
+        result_msg += f"Wygrałeś! Otrzymujesz {wygrana} Robuxów."
+    elif player_val == dealer_val:
+        user_data['robux'] += game['bet']
+        update_user_data(ctx.author.id, user_data)
+        result_msg += "Remis! Stawka została zwrócona."
+    else:
+        result_msg += "Przegrałeś!"
+
+    await ctx.send(result_msg)
+
+
+OWNER_ID = 987130076866949230
+
+@bot.command()
+async def dodajkase(ctx, member: discord.Member, kwota: int):
+    if ctx.author.id != OWNER_ID:
+        return await ctx.send("❌ Tylko właściciel bota może używać tej komendy.")
+    
+    if kwota <= 0:
+        return await ctx.send("Podaj poprawną kwotę większą niż 0.")
+    
+    user_data = get_user_data(member.id)
+    user_data['robux'] += kwota
+    update_user_data(member.id, user_data)
+    
+    await ctx.send(f"✅ Dodano {kwota} Robuxów użytkownikowi {member.mention}!")
+
+
+
 @bot.command()
 async def bank(ctx, operacja: str, kwota: int):
     user_data = get_user_data(ctx.author.id)
