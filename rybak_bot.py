@@ -265,6 +265,47 @@ async def rob(ctx, target: discord.Member):
     update_user_data(ctx.author.id, user_data)
     update_user_data(target.id, target_data)
 
+
+
+import random
+
+@bot.command()
+async def ruletka(ctx, kwota: int, kolor: str):
+    kolor = kolor.lower()
+    kolory = ['czerwony', 'czarny', 'zielony']
+
+    if kolor not in kolory:
+        return await ctx.send("Podaj poprawny kolor: czerwony, czarny lub zielony.")
+
+    if kwota <= 0:
+        return await ctx.send("Podaj poprawną kwotę większą niż 0.")
+
+    user_data = get_user_data(ctx.author.id)
+    if user_data['robux'] < kwota:
+        return await ctx.send("Nie masz tyle Robuxów.")
+
+    user_data['robux'] -= kwota
+
+    # Losujemy wynik ruletki z wagami 2% zielony, 49% czerwony, 49% czarny
+    wynik = random.choices(
+        population=['zielony', 'czerwony', 'czarny'],
+        weights=[2, 49, 49],
+        k=1
+    )[0]
+
+    if wynik == kolor:
+        if wynik == 'zielony':
+            wygrana = kwota * 10
+        else:
+            wygrana = kwota * 2
+
+        user_data['robux'] += wygrana
+        update_user_data(ctx.author.id, user_data)
+        await ctx.send(f"🎉 Wylosowano **{wynik}**! Gratulacje, wygrałeś {wygrana} Robuxów!")
+    else:
+        update_user_data(ctx.author.id, user_data)
+        await ctx.send(f"😢 Wylosowano **{wynik}**. Przegrałeś {kwota} Robuxów.")
+        
 @bot.command()
 async def kup(ctx, *, nazwa: str):
     role_map = {
