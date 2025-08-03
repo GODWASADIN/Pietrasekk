@@ -165,7 +165,7 @@ async def dep(ctx, kwota: str):
     await ctx.send(f"{ctx.author.mention} wpłacił {kwota_int} Robuxów do banku.")
 
 @bot.command()
-async def with(ctx, kwota: str):
+async def withd(ctx, kwota: str):  # zmienione z 'with' na 'withd'
     user_data = get_user_data(ctx.author.id)
     bank = user_data.get('bank', 0)
 
