@@ -165,6 +165,56 @@ async def dodajkase(ctx, member: discord.Member, kwota: int):
     await ctx.send(f"✅ Dodano {kwota} Robuxów użytkownikowi {member.mention}!")
 
 
+@bot.command()
+async def buyticket(ctx):
+    user_data = get_user_data(ctx.author.id)
+    if user_data.get('tickets', 0) >= 1:
+        return await ctx.send("Masz już 1 ticket — możesz kupić tylko jeden.")
+
+    if user_data['robux'] < 50:
+        return await ctx.send("Nie masz wystarczająco Robuxów (potrzeba 50).")
+
+    user_data['robux'] -= 50
+    user_data['tickets'] = 1
+    update_user_data(ctx.author.id, user_data)
+
+    await ctx.send(f"{ctx.author.mention} kupił ticket za 50 Robuxów! Powodzenia w losowaniu!")
+
+
+
+import asyncio
+import random
+
+async def ticket_lottery():
+    await bot.wait_until_ready()
+    while not bot.is_closed():
+        data = load_data()
+        uczestnicy = [user_id for user_id, udata in data.items() if udata.get('tickets', 0) == 1]
+
+        if uczestnicy:
+            zwyciezca_id = random.choice(uczestnicy)
+            zwyciezca_data = data[zwyciezca_id]
+
+            # Zdejmij ticket
+            zwyciezca_data['tickets'] = 0
+            # Dodaj 1000 Robuxów
+            zwyciezca_data['robux'] += 1000
+            update_user_data(int(zwyciezca_id), zwyciezca_data)
+
+            user = bot.get_user(int(zwyciezca_id))
+            channel = bot.get_channel(YOUR_ANNOUNCEMENT_CHANNEL_ID)  # Wstaw ID kanału
+
+            if user and channel:
+                await channel.send(f"🎉 {user.mention} wygrał 1000 Robuxów w losowaniu ticketów!")
+
+            save_data(data)
+        else:
+            print("Brak uczestników w losowaniu ticketów.")
+
+        await asyncio.sleep(3600)  # co 1 godzinę
+
+bot.loop.create_task(ticket_lottery())
+
 
 @bot.command()
 async def bank(ctx, operacja: str, kwota: int):
@@ -245,6 +295,25 @@ async def slut(ctx):
         user_data['robux'] = max(0, user_data['robux'] - strata)
         await ctx.send(f"{ctx.author.mention}, przegrałeś {strata} Robuxów.")
     update_user_data(ctx.author.id, user_data)
+
+
+OWNER_ID = 987130076866949230
+
+@bot.command()
+async def dodajlvl(ctx, member: discord.Member, ile: int):
+    if ctx.author.id != OWNER_ID:
+        return await ctx.send("❌ Tylko właściciel bota może używać tej komendy.")
+    
+    if ile <= 0:
+        return await ctx.send("Podaj poprawną liczbę poziomów do dodania.")
+    
+    user_data = get_user_data(member.id)
+    user_data['level'] = user_data.get('level', 1) + ile
+    update_user_data(member.id, user_data)
+    
+    await ctx.send(f"✅ Dodano {ile} poziomów użytkownikowi {member.mention}. Nowy poziom: {user_data['level']}")
+
+
 
 @bot.command()
 @commands.cooldown(1, 120, commands.BucketType.user)
