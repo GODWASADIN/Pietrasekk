@@ -84,11 +84,12 @@ async def bank(ctx, operacja: str, kwota: int):
 @commands.cooldown(1, 20, commands.BucketType.user)
 async def lowienie(ctx):
     ryby = [
-        ("Płotka", 0.425, (10, 30)),
-        ("Szczupak", 0.255, (30, 60)),
-        ("Łosoś", 0.1275, (60, 100)),
-        ("Rekin", 0.034, (100, 250)),
-        ("Megalodon", 0.0085, (500, 1000)),
+        ("Płotka", 0.425, (30, 60)),
+        ("Szczupak", 0.255, (60, 120)),
+        ("Szczupak", 0.255, (150, 180)),
+        ("Łosoś", 0.1275, (200, 250)),
+        ("Rekin", 0.034, (400, 500)),
+        ("Nemo", 0.0085, (1000, 2000)),
     ]
     r = random.random()
     suma = 0
